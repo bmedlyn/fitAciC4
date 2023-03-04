@@ -18,25 +18,25 @@
 
 # wrappers for C4 function, so it only returns A, to which we are fitting
 # This allows us to fit numerical solution
-fAC4v <- function(Vcmax,Vpmax25,Jmax25,PPFD,Ci,Tleaf,RdRatio=0.01) {
+fAC4v <- function(Vcmax,Vpmax25,Jmax25,PPFD,Ci,Tleaf,RdRatio) {
   Rd0 <- RdRatio * Vcmax
   AciC4(Vcmax=Vcmax,VPMAX25=Vpmax25,JMAX25=Jmax25,RD0=Rd0,
         PPFD=PPFD,Ci=Ci,Tleaf=Tleaf)$Ac
 }
 
-fAC4j <- function(Vcmax,Vpmax25,Jmax25,PPFD,Ci,Tleaf,RdRatio=0.01) {
-  Rd0 <- RdRatio * Vcmax
+fAC4j <- function(Vcmax,Vpmax25,Jmax25,PPFD,Ci,Tleaf,Rd0) {
   AciC4(Vcmax=Vcmax,VPMAX25=Vpmax25,JMAX25=Jmax25,RD0=Rd0,
         PPFD=PPFD,Ci=Ci,Tleaf=Tleaf)$Aj
 }
 
-# fit Jmax to light-limited portion of curve
-fitAciC4num_J <- function(data) {
+# fit Jmax to light-limited portion of curve; given Rd0
+fitAciC4num_J <- function(data,Rd0) {
   
   # Tleaf is not vectorised - just use mean
   meanTleaf = mean(data$Tleaf)
   # call nls to fit
-  fit <- try(nls(Photo ~ fAC4j(Vcmax=20, Vpmax25=20, Jmax25=JMAX25, PPFD=PARi, Ci=Ci, Tleaf=meanTleaf),
+  fit <- try(nls(Photo ~ fAC4j(Vcmax=Vcmax, Vpmax25=Vpmax, Jmax25=JMAX25, 
+                               PPFD=PARi, Ci=Ci, Tleaf=meanTleaf, Rd0=Rd0),
              start=list(JMAX25=100),trace=FALSE,
              control=(nls.control(warnOnly=TRUE)),data = data))
   coefs <- coef(summary(fit))
@@ -46,12 +46,13 @@ fitAciC4num_J <- function(data) {
 }
 
 # fit Vcmax and Vpmax to light-limited portion of curve
-fitAciC4num_V <- function(data) {
+fitAciC4num_V <- function(data,RdRatio) {
   
   # Tleaf is not vectorised - just use mean
   meanTleaf = mean(data$Tleaf)
   # call nls to fit
-  fit <- try(nls(Photo ~ fAC4v(Vcmax, Vpmax25, Jmax25=100, PPFD=PARi, Ci=Ci, Tleaf=meanTleaf),
+  fit <- try(nls(Photo ~ fAC4v(Vcmax, Vpmax25, Jmax25=100, 
+                               PPFD=PARi, Ci=Ci, Tleaf=meanTleaf, RdRatio=RdRatio),
                  start=list(Vcmax=25, Vpmax25 = 20),trace=FALSE,
                  control=(nls.control(warnOnly=TRUE)),data = data))
   coefs <- coef(summary(fit))
@@ -72,7 +73,8 @@ renameLi6800 <- function(data) {
 # Enzyme to low Ci and Light limitation to high Ci
 # Possible transition points lie from between points 3,4 up to between points n-2,n-1 
 # Find the transition point that minimises the sum of squares overall
-fitAciC4trans <- function(data) {
+# Fixing an RdRatio
+fitAciC4trans <- function(data,RdRatio = 0.01) {
   
   # First sort data by Ci
   data <- subset(data, Ci > 0)
@@ -85,7 +87,7 @@ fitAciC4trans <- function(data) {
   if (len < 5) return
   
   # Set up ssq array
-  ssq <- jmax <- vcmax <- vpmax <- jmaxSE <- vcmaxSE <- vpmaxSE <- c()
+  ssq <- jmax <- vcmax <- vpmax <- Rd0 <- jmaxSE <- vcmaxSE <- vpmaxSE <- c()
   
   # loop over possible transition points
   for (i in 1:(len-4)) {
@@ -94,21 +96,22 @@ fitAciC4trans <- function(data) {
     d2 <- data[(i+3):len,]
     
     # fit Vcmax and Vpmax to lower portion of curve
-    vs <- fitAciC4num_V(d1)
+    vs <- fitAciC4num_V(d1,RdRatio)
     vcmax[i] <- vs["Vcmax"]
     vpmax[i] <- vs["Vpmax"]
     vcmaxSE[i] <- vs["VcmaxSE"]
     vpmaxSE[i] <- vs["VpmaxSE"]
     
-    # fit Jmax to upper portion of curve
-    js <- fitAciC4num_J(d2)
+    # fit Jmax to upper portion of curve, given Rd0
+    Rd0[i] <- RdRatio*vcmax[i]
+    js <- fitAciC4num_J(d2,Rd0[i])
     jmax[i] <- js["Jmax"]
     jmaxSE[i] <- js["JmaxSE"]
     
     # calculate ssq
     fitted <- with(data,AciC4(Vcmax=vcmax[i],VPMAX25=vpmax[i],
                               JMAX25=jmax[i],
-                              PPFD=PARi,Ci=Ci,Tleaf=meanTleaf))
+                              PPFD=PARi,Ci=Ci,Tleaf=meanTleaf,RD0=Rd0[i]))
     ssq[i] <- sum((data$Photo-fitted$ALEAF)^2)
     
   }
@@ -118,10 +121,10 @@ fitAciC4trans <- function(data) {
   rmse <- sqrt(ssq[i_trans]/length(data$Ci))
   
   # best-fit parameters
-  pars <- data.frame(vcmax[i_trans],vpmax[i_trans],jmax[i_trans],
+  pars <- data.frame(vcmax[i_trans],vpmax[i_trans],jmax[i_trans],Rd0[i],
                      vcmaxSE[i_trans],vpmaxSE[i_trans],jmaxSE[i_trans],
-                     rmse,i_trans)
-  names(pars) <- c("Vcmax","Vpmax","Jmax","VcmaxSE","VpmaxSE","JmaxSE",
+                     rmse,i_trans+2)
+  names(pars) <- c("Vcmax","Vpmax","Jmax","Rd0","VcmaxSE","VpmaxSE","JmaxSE",
                    "RMSE","trans_pt")
   return(pars)
   
@@ -136,7 +139,7 @@ visfit <- function(data,pars) {
   Ciseq <- seq(20,max(data$Ci),by=20)
   fittedAnum <- with(data,AciC4(Vcmax=pars$Vcmax,VPMAX25=pars$Vpmax,
                                 JMAX25=pars$Jmax,
-                                PPFD=meanPAR,Ci=Ciseq,Tleaf=meanTleaf))
+                                PPFD=meanPAR,Ci=Ciseq,Tleaf=meanTleaf,RD0=pars$Rd0))
   
   cit <- ifelse(!is.numeric(pars$ci_trans),NA,round(pars$ci_trans))
   title <- paste0(data$ID[1]," Vc ",round(pars$Vcmax),
@@ -158,13 +161,15 @@ visfit <- function(data,pars) {
 citrans <- function(data,pars) {
   
   fci <- function(ci) {
-      a <- AciC4(Vcmax=Vcmax,VPMAX25=Vpmax25,JMAX25=Jmax25,PPFD=PPFD,Ci=ci,Tleaf=Tleaf)
+      a <- AciC4(Vcmax=Vcmax,VPMAX25=Vpmax25,JMAX25=Jmax25,
+                 PPFD=PPFD,Ci=ci,Tleaf=Tleaf,RD0=Rd0)
       return(a$Aj - a$Ac)
   }
   
   Vcmax <- pars$Vcmax
   Vpmax25 <- pars$Vpmax
   Jmax25 <- pars$Jmax
+  Rd0 <- pars$Rd0
   PPFD <- mean(data$PARi)
   Tleaf <- mean(data$Tleaf)
   
@@ -174,16 +179,51 @@ citrans <- function(data,pars) {
 
 }
 
+# Empirical benchmark - try non-rectangular hyperbola
+# with four parameters
+# theta*A^2 - (alpha*Ci + Amax)*A + alpha*Ci*Amax - Rd = 0
+empirical <- function(Ci,Amax,alpha,theta,Rd) {
+  
+  a <- theta
+  b <- -(alpha*Ci + Amax)
+  c <- alpha*Ci*Amax - Rd
+  disc <- b^2 - 4*a*c
+  ret <- (-b - sqrt(disc)) / (2*a)
+  return(ret)
+  
+}
+
+# Fit benchmark
+# may not be possible to fit all four parameters
+fit_empirical <- function(data) {
+  
+  # fit with nls
+  fit <- try(nls(Photo ~ empirical(Ci=Ci,Amax,alpha,theta=0.7,Rd),
+                 start=list(Amax=max(data$Photo), alpha=0.1,
+                            Rd=0.5),trace=FALSE,
+                 control=(nls.control(warnOnly=TRUE)),data = data))
+  coefs <- coef(fit)
+  fittedAemp <- with(data,empirical(data$Ci,Amax=coefs[1],
+                                    alpha=coefs[2],theta=0.7,Rd=coefs[3]))
+  
+  with(data,plot(Ci,Photo,ylim=c(0,2*max(Photo))))
+  points(data$Ci,fittedAemp,col="red")
+  empssq <- sum((data$Photo-fittedAemp)^2)
+  emp_RMSE <- sqrt(empssq/length(fittedAemp))
+  return(emp_RMSE)
+}
+
 # Function to do the lot
 # Fit curve, make plot, return params and ci transition point
-do_the_lot <- function(data) {
+do_the_lot <- function(data,RdRatio=0.01) {
   
   # fit curve
-  pars <- fitAciC4trans(data)
+  pars <- fitAciC4trans(data,RdRatio)
   if (!is.null(pars)) {
     pars$ci_trans <- citrans(data,pars)
     visfit(data,pars)
   }
+  pars$emp_RMSE <- fit_empirical(data)
   return(pars)
   
 }
