@@ -7,6 +7,8 @@
 # fitAciC4num_J - Fit Jmax to light-limited portion of curve
 # fitAciC4num_V - Fit Vcmax and Vpmax to enzyme-limited portion of curve
 #   Currently assuming RD0 = 0.01 Vcmax, other parameters defaults
+# empirical - Non-rectangular hyperbola benchmark
+# fit_empirical - Fits the empirical benchmark
 #
 # fitAciC4trans - Fit full A-Ci curve. This works by looping over all
 #   possible breakpoints of the curve, fitting the two halves of the curve
@@ -121,7 +123,7 @@ fitAciC4trans <- function(data,RdRatio = 0.01) {
   rmse <- sqrt(ssq[i_trans]/length(data$Ci))
   
   # best-fit parameters
-  pars <- data.frame(vcmax[i_trans],vpmax[i_trans],jmax[i_trans],Rd0[i],
+  pars <- data.frame(vcmax[i_trans],vpmax[i_trans],jmax[i_trans],Rd0[i_trans],
                      vcmaxSE[i_trans],vpmaxSE[i_trans],jmaxSE[i_trans],
                      rmse,i_trans+2)
   names(pars) <- c("Vcmax","Vpmax","Jmax","Rd0","VcmaxSE","VpmaxSE","JmaxSE",
@@ -206,10 +208,12 @@ fit_empirical <- function(data) {
   fittedAemp <- with(data,empirical(data$Ci,Amax=coefs[1],
                                     alpha=coefs[2],theta=0.7,Rd=coefs[3]))
   
-  with(data,plot(Ci,Photo,ylim=c(0,2*max(Photo))))
-  points(data$Ci,fittedAemp,col="red")
   empssq <- sum((data$Photo-fittedAemp)^2)
   emp_RMSE <- sqrt(empssq/length(fittedAemp))
+  title <- paste0("RMSE ",emp_RMSE)
+  with(data,plot(Ci,Photo,ylim=c(0,2*max(Photo)),main=title))
+  points(data$Ci,fittedAemp,col="red")
+
   return(emp_RMSE)
 }
 
