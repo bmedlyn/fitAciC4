@@ -1,6 +1,11 @@
-
-
 # Code fits A-Ci function for C4 photosynthesis
+
+# To do: 
+# Make Rd = 1% of Vcmax
+# Check the ci transition point
+# add SE's
+# test if Vpmax and Vcmax are identifiable
+# implement an empirical model as a benchmark
 
 source("R/loadPackages.R") # required packages
 source("R/AciC4.R")        # implements C4 model

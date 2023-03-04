@@ -1,12 +1,33 @@
 
+### LIST OF FUNCTIONS
+# 
+# renameLi6800 - give standard column names to LI6800 outputs
+# fAC4v - Wrapper to calculate Av from function AciC4
+# fAC4j - Wrapper to calculate Aj from function AciC4
+# fitAciC4num_J - Fit Jmax to light-limited portion of curve
+# fitAciC4num_V - Fit Vcmax and Vpmax to enzyme-limited portion of curve
+#   Currently assuming RD0 = 0.01 Vcmax, other parameters defaults
+#
+# fitAciC4trans - Fit full A-Ci curve. This works by looping over all
+#   possible breakpoints of the curve, fitting the two halves of the curve
+#   each time, then finding the breakpoint that gives the lowest SSQ
+# citrans - Find Ci value at which Aj = Ac
+# visfit - make plot
+# do_the_lot - call fitting and plotting routines for one curve
+###
+
 # wrappers for C4 function, so it only returns A, to which we are fitting
 # This allows us to fit numerical solution
-fAC4v <- function(Vcmax,Vpmax25,Jmax25,PPFD,Ci,Tleaf) {
-  AciC4(Vcmax=Vcmax,VPMAX25=Vpmax25,JMAX25=Jmax25,PPFD=PPFD,Ci=Ci,Tleaf=Tleaf)$Ac
+fAC4v <- function(Vcmax,Vpmax25,Jmax25,PPFD,Ci,Tleaf,RdRatio=0.01) {
+  Rd0 <- RdRatio * Vcmax
+  AciC4(Vcmax=Vcmax,VPMAX25=Vpmax25,JMAX25=Jmax25,RD0=Rd0,
+        PPFD=PPFD,Ci=Ci,Tleaf=Tleaf)$Ac
 }
 
-fAC4j <- function(Vcmax,Vpmax25,Jmax25,PPFD,Ci,Tleaf) {
-  AciC4(Vcmax=Vcmax,VPMAX25=Vpmax25,JMAX25=Jmax25,PPFD=PPFD,Ci=Ci,Tleaf=Tleaf)$Aj
+fAC4j <- function(Vcmax,Vpmax25,Jmax25,PPFD,Ci,Tleaf,RdRatio=0.01) {
+  Rd0 <- RdRatio * Vcmax
+  AciC4(Vcmax=Vcmax,VPMAX25=Vpmax25,JMAX25=Jmax25,RD0=Rd0,
+        PPFD=PPFD,Ci=Ci,Tleaf=Tleaf)$Aj
 }
 
 # fit Jmax to light-limited portion of curve
