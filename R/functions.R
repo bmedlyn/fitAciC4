@@ -36,11 +36,13 @@ fitAciC4num_J <- function(data) {
   # Tleaf is not vectorised - just use mean
   meanTleaf = mean(data$Tleaf)
   # call nls to fit
-  ret <- try(nls(Photo ~ fAC4j(Vcmax=20, Vpmax25=20, Jmax25=JMAX25, PPFD=PARi, Ci=Ci, Tleaf=meanTleaf),
+  fit <- try(nls(Photo ~ fAC4j(Vcmax=20, Vpmax25=20, Jmax25=JMAX25, PPFD=PARi, Ci=Ci, Tleaf=meanTleaf),
              start=list(JMAX25=100),trace=FALSE,
              control=(nls.control(warnOnly=TRUE)),data = data))
-  coefs <- coef(ret)
-  return(coefs)
+  coefs <- coef(summary(fit))
+  ret <- coefs[1:2]
+  names(ret) <- c("Jmax","JmaxSE")
+  return(ret)
 }
 
 # fit Vcmax and Vpmax to light-limited portion of curve
@@ -49,11 +51,13 @@ fitAciC4num_V <- function(data) {
   # Tleaf is not vectorised - just use mean
   meanTleaf = mean(data$Tleaf)
   # call nls to fit
-  ret <- try(nls(Photo ~ fAC4v(Vcmax, Vpmax25, Jmax25=100, PPFD=PARi, Ci=Ci, Tleaf=meanTleaf),
+  fit <- try(nls(Photo ~ fAC4v(Vcmax, Vpmax25, Jmax25=100, PPFD=PARi, Ci=Ci, Tleaf=meanTleaf),
                  start=list(Vcmax=25, Vpmax25 = 20),trace=FALSE,
                  control=(nls.control(warnOnly=TRUE)),data = data))
-  coefs <- coef(ret)
-  return(coefs)
+  coefs <- coef(summary(fit))
+  ret <- coefs[1:4]
+  names(ret) <- c("Vcmax","Vpmax","VcmaxSE","VpmaxSE")
+  return(ret)
 }
 
 # change names from 6800 to what's needed
@@ -81,7 +85,7 @@ fitAciC4trans <- function(data) {
   if (len < 5) return
   
   # Set up ssq array
-  ssq <- jmax <- vcmax <- vpmax <- c()
+  ssq <- jmax <- vcmax <- vpmax <- jmaxSE <- vcmaxSE <- vpmaxSE <- c()
   
   # loop over possible transition points
   for (i in 1:(len-4)) {
@@ -91,12 +95,15 @@ fitAciC4trans <- function(data) {
     
     # fit Vcmax and Vpmax to lower portion of curve
     vs <- fitAciC4num_V(d1)
-    vcmax[i] <- vs[1]
-    vpmax[i] <- vs[2]
+    vcmax[i] <- vs["Vcmax"]
+    vpmax[i] <- vs["Vpmax"]
+    vcmaxSE[i] <- vs["VcmaxSE"]
+    vpmaxSE[i] <- vs["VpmaxSE"]
     
     # fit Jmax to upper portion of curve
     js <- fitAciC4num_J(d2)
-    jmax[i] <- js[1]
+    jmax[i] <- js["Jmax"]
+    jmaxSE[i] <- js["JmaxSE"]
     
     # calculate ssq
     fitted <- with(data,AciC4(Vcmax=vcmax[i],VPMAX25=vpmax[i],
@@ -112,8 +119,10 @@ fitAciC4trans <- function(data) {
   
   # best-fit parameters
   pars <- data.frame(vcmax[i_trans],vpmax[i_trans],jmax[i_trans],
+                     vcmaxSE[i_trans],vpmaxSE[i_trans],jmaxSE[i_trans],
                      rmse,i_trans)
-  names(pars) <- c("Vcmax","Vpmax","Jmax","RMSE","trans_pt")
+  names(pars) <- c("Vcmax","Vpmax","Jmax","VcmaxSE","VpmaxSE","JmaxSE",
+                   "RMSE","trans_pt")
   return(pars)
   
 }
