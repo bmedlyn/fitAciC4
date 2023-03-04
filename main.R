@@ -1,7 +1,6 @@
 # Code fits A-Ci function for C4 photosynthesis
 
 # To do: 
-# add SE's
 # test if Vpmax and Vcmax are identifiable
 # implement an empirical model as a benchmark
 
