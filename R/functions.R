@@ -123,10 +123,11 @@ visfit <- function(data,pars) {
   
   # calculate fitted values
   meanTleaf <- mean(data$Tleaf)
+  meanPAR <- mean(data$PARi)
+  Ciseq <- seq(20,max(data$Ci),by=20)
   fittedAnum <- with(data,AciC4(Vcmax=pars$Vcmax,VPMAX25=pars$Vpmax,
                                 JMAX25=pars$Jmax,
-                                PPFD=PARi,Ci=Ci,Tleaf=meanTleaf))
-  fittedAnum <- fittedAnum[order(fittedAnum$Ci),]
+                                PPFD=meanPAR,Ci=Ciseq,Tleaf=meanTleaf))
   
   cit <- ifelse(!is.numeric(pars$ci_trans),NA,round(pars$ci_trans))
   title <- paste0(data$ID[1]," Vc ",round(pars$Vcmax),
@@ -140,6 +141,7 @@ visfit <- function(data,pars) {
   with(fittedAnum,points(Ci, Aj, col="red",type="l"))
   with(fittedAnum,points(Ci, Ac, col="blue",type="l"))
   points(fittedAnum$Ci,fittedAnum$ALEAF,col="black",type="l")
+  abline(v=cit,lty=3)
 }
 
 # Function to calculate ci transition point

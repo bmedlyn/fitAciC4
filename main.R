@@ -1,7 +1,6 @@
 # Code fits A-Ci function for C4 photosynthesis
 
 # To do: 
-# Make Rd = 1% of Vcmax
 # Check the ci transition point
 # add SE's
 # test if Vpmax and Vcmax are identifiable
