@@ -32,7 +32,7 @@ fAC4j <- function(Vcmax,Vpmax25,Jmax25,PPFD,Ci,Tleaf,Rd0) {
 }
 
 # fit Jmax to light-limited portion of curve; given Rd0
-fitAciC4num_J <- function(data,Rd0) {
+fitAciC4num_J <- function(data, Vcmax, Vpmax, Rd0) {
   
   # Tleaf is not vectorised - just use mean
   meanTleaf = mean(data$Tleaf)
@@ -103,10 +103,10 @@ fitAciC4trans <- function(data,RdRatio = 0.01) {
     vpmax[i] <- vs["Vpmax"]
     vcmaxSE[i] <- vs["VcmaxSE"]
     vpmaxSE[i] <- vs["VpmaxSE"]
+    Rd0[i] <- RdRatio*vcmax[i]
     
     # fit Jmax to upper portion of curve, given Rd0
-    Rd0[i] <- RdRatio*vcmax[i]
-    js <- fitAciC4num_J(d2,Rd0[i])
+    js <- fitAciC4num_J(d2,vcmax[i],vpmax[i],Rd0[i])
     jmax[i] <- js["Jmax"]
     jmaxSE[i] <- js["JmaxSE"]
     
