@@ -188,9 +188,9 @@ non_rect_hyp <- function(Ci,Amax,alpha,theta,Rd) {
   
   a <- theta
   b <- -(alpha*Ci + Amax)
-  c <- alpha*Ci*Amax - Rd
+  c <- alpha*Ci*Amax
   disc <- b^2 - 4*a*c
-  ret <- (-b - sqrt(disc)) / (2*a)
+  ret <- (-b - sqrt(disc)) / (2*a) + Rd
   return(ret)
   
 }
@@ -201,7 +201,7 @@ fit_empirical <- function(data) {
   
   # fit with nls
   fit <- try(nls(Photo ~ non_rect_hyp(Ci=Ci,Amax,alpha,theta=0.7,Rd),
-                 start=list(Amax=max(data$Photo), alpha=0.1,
+                 start=list(Amax=max(data$Photo), alpha=0.5,
                             Rd=0.5),trace=FALSE,
                  control=(nls.control(warnOnly=TRUE)),data = data))
   coefs <- coef(fit)
@@ -210,9 +210,10 @@ fit_empirical <- function(data) {
   
   empssq <- sum((data$Photo-fittedAemp)^2)
   emp_RMSE <- sqrt(empssq/length(fittedAemp))
-  title <- paste0("RMSE ",emp_RMSE)
+  title <- paste0("RMSE ",round(emp_RMSE,1), "Amax ",round(coefs[1]),
+                  " alpha ",round(coefs[2],2)," Rd ",round(coefs[3],2))
   with(data,plot(Ci,Photo,ylim=c(0,2*max(Photo)),main=title))
-  points(data$Ci,fittedAemp,col="red")
+  points(data$Ci,fittedAemp,col="red",type="l")
 
   return(emp_RMSE)
 }

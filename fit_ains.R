@@ -28,7 +28,7 @@ fitAciC4_ainsy <- function(data,lowCi = 150) {
   # fit 4 parameters to full curve
   fit_all <- try(nls(Photo ~ non_rect_hyp(Ci=Ci,Amax,alpha,theta=0.7,Rd),
                  start=list(Amax=max(data$Photo), alpha=0.1,
-                            Rd=0.5),trace=TRUE,
+                            Rd=0.5),trace=FALSE,
                  control=(nls.control(warnOnly=TRUE)),data = data))
   ret1 <- coef(fit_low)
   ret2 <- coef(fit_all)
