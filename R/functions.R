@@ -184,7 +184,7 @@ citrans <- function(data,pars) {
 # Empirical benchmark - try non-rectangular hyperbola
 # with four parameters
 # theta*A^2 - (alpha*Ci + Amax)*A + alpha*Ci*Amax - Rd = 0
-empirical <- function(Ci,Amax,alpha,theta,Rd) {
+non_rect_hyp <- function(Ci,Amax,alpha,theta,Rd) {
   
   a <- theta
   b <- -(alpha*Ci + Amax)
@@ -200,12 +200,12 @@ empirical <- function(Ci,Amax,alpha,theta,Rd) {
 fit_empirical <- function(data) {
   
   # fit with nls
-  fit <- try(nls(Photo ~ empirical(Ci=Ci,Amax,alpha,theta=0.7,Rd),
+  fit <- try(nls(Photo ~ non_rect_hyp(Ci=Ci,Amax,alpha,theta=0.7,Rd),
                  start=list(Amax=max(data$Photo), alpha=0.1,
                             Rd=0.5),trace=FALSE,
                  control=(nls.control(warnOnly=TRUE)),data = data))
   coefs <- coef(fit)
-  fittedAemp <- with(data,empirical(data$Ci,Amax=coefs[1],
+  fittedAemp <- with(data,non_rect_hyp(data$Ci,Amax=coefs[1],
                                     alpha=coefs[2],theta=0.7,Rd=coefs[3]))
   
   empssq <- sum((data$Photo-fittedAemp)^2)
@@ -228,6 +228,9 @@ do_the_lot <- function(data,RdRatio=0.01) {
     visfit(data,pars)
   }
   pars$emp_RMSE <- fit_empirical(data)
+  pars_a <-fitAciC4_ainsy(data)
+  pars$VcmaxLA <- pars_a["Amax"]
+  pars$VpmaxLA <- pars_a["Vpmax"]
   return(pars)
   
 }

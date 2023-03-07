@@ -19,7 +19,7 @@ vinlist <- split(vin,vin$ID)
 # function do_the_lot fits the curve, finds the Ci transition point,
 # and visualises the fit
 # apply function to first curve to test
-do_the_lot(vinlist[[1]])
+vin1 <- do_the_lot(vinlist[[1]])
 
 # make pdf file with all curves
 pdf(file="Output/vin_out.pdf")
@@ -31,6 +31,8 @@ vin_smry <- bind_rows(vinout)
 
 # investigate fitted parameters
 with(vin_smry,plot(Vcmax,Vpmax))
+with(vin_smry,plot(Vpmax,VpmaxLA))
+with(vin_smry,plot(Vcmax,VcmaxLA))
 with(vin_smry,plot(Vcmax,Jmax))
 with(vin_smry,plot(ci_trans,Vpmax))
 with(vin_smry,plot(RMSE,Vcmax))
