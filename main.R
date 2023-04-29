@@ -3,6 +3,7 @@
 source("R/loadPackages.R") # required packages
 source("R/AciC4.R")        # implements C4 model
 source("R/functions.R")    # all fitting functions
+source("fit_ains.R")
 
 # Example dataset from Vinod Jacob (Hawkesbury Institute for the Environment)
 # Note example is for kangaroo grass, photosynthetic rates low

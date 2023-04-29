@@ -19,7 +19,7 @@ fitAciC4_ainsy <- function(data,lowCi = 150) {
   
   # fit Vpmax and Rm to initial slope
   data <- data[order(data$Ci),]
-  low <- subset(dat,Ci < lowCi)
+  low <- subset(data,Ci < lowCi)
   Kp <- 80
   fit_low <- try(nls(Photo ~ vpf(Ci=Ci,Vpmax,Kp,Rm),
                  start=list(Vpmax=25,Rm=0.5),trace=FALSE,
