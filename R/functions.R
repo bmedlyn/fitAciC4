@@ -230,7 +230,7 @@ do_the_lot <- function(data,RdRatio=0.01) {
   }
   pars$emp_RMSE <- fit_empirical(data)
   pars_a <-fitAciC4_ainsy(data)
-  pars$VcmaxLA <- pars_a["Amax"]
+  pars$AmaxLA <- pars_a["Amax"]
   pars$VpmaxLA <- pars_a["Vpmax"]
   return(pars)
   

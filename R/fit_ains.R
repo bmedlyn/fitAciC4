@@ -39,7 +39,7 @@ fitAciC4_ainsy <- function(data,lowCi = 150) {
   fittedAvc <- with(data,non_rect_hyp(Ciseq,Amax=ret["Amax"],
                                        alpha=ret["alpha"],theta=0.7,Rd=ret["Rd"]))
   title <- paste0("Ains ",data$ID[1],
-                  " Vpmax ",round(ret["Vpmax"],1)," Vmax ",round(ret["Amax"],1))
+                  " Vpmax ",round(ret["Vpmax"],1)," Amax ",round(ret["Amax"],1))
   with(data,plot(Ci,Photo,ylim=c(0,2*max(Photo)),main=title))
   points(Ciseq,fittedAvc,col="red",type="l")
   points(Ciseq,fittedAvp,col="blue",type="l") 
