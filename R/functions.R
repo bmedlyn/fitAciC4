@@ -224,6 +224,7 @@ do_the_lot <- function(data,RdRatio=0.01) {
   
   # fit curve
   pars <- fitAciC4trans(data,RdRatio)
+  pars <- check_upper(data,pars,RdRatio)
   if (!is.null(pars)) {
     pars$ci_trans <- citrans(data,pars)
     visfit(data,pars)
