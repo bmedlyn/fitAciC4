@@ -42,8 +42,8 @@ fitAciC4num_J <- function(data, Vcmax, Vpmax, Rd0) {
              start=list(JMAX25=100),trace=FALSE,
              control=(nls.control(warnOnly=TRUE)),data = data))
   coefs <- coef(summary(fit))
-  ret <- coefs[1:2]
-  names(ret) <- c("Jmax","JmaxSE")
+  ret <- c(coefs[1:2],meanTleaf)
+  names(ret) <- c("Jmax","JmaxSE","Tleaf")
   return(ret)
 }
 
@@ -89,7 +89,7 @@ fitAciC4trans <- function(data,RdRatio = 0.01) {
   if (len < 5) return
   
   # Set up ssq array
-  ssq <- jmax <- vcmax <- vpmax <- Rd0 <- jmaxSE <- vcmaxSE <- vpmaxSE <- c()
+  ssq <- jmax <- vcmax <- vpmax <- Rd0 <- jmaxSE <- vcmaxSE <- vpmaxSE <- tleaf <- c()
   
   # loop over possible transition points
   for (i in 1:(len-4)) {
@@ -109,6 +109,7 @@ fitAciC4trans <- function(data,RdRatio = 0.01) {
     js <- fitAciC4num_J(d2,vcmax[i],vpmax[i],Rd0[i])
     jmax[i] <- js["Jmax"]
     jmaxSE[i] <- js["JmaxSE"]
+    tleaf[i] <- js["Tleaf"]
     
     # calculate ssq
     fitted <- with(data,AciC4(Vcmax=vcmax[i],VPMAX25=vpmax[i],
@@ -124,9 +125,9 @@ fitAciC4trans <- function(data,RdRatio = 0.01) {
   
   # best-fit parameters
   pars <- data.frame(vcmax[i_trans],vpmax[i_trans],jmax[i_trans],Rd0[i_trans],
-                     vcmaxSE[i_trans],vpmaxSE[i_trans],jmaxSE[i_trans],
+                     vcmaxSE[i_trans],vpmaxSE[i_trans],jmaxSE[i_trans],tleaf[i_trans],
                      rmse,i_trans+2)
-  names(pars) <- c("Vcmax","Vpmax","Jmax","Rd0","VcmaxSE","VpmaxSE","JmaxSE",
+  names(pars) <- c("Vcmax","Vpmax","Jmax","Rd0","VcmaxSE","VpmaxSE","JmaxSE","Tleaf",
                    "RMSE","trans_pt")
   return(pars)
   
