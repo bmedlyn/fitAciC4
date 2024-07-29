@@ -34,14 +34,14 @@ fitAciC4_ainsy <- function(data,lowCi = 150) {
   ret <- c(ret1,ret2)
   
   #Ciseq <- seq(20,max(data$Ci),by=20)
-  Ciseq <- seq(-100,1500,by=20)
+  Ciseq <- seq(-100,1000,by=20)
   fittedAvp <- with(data, vpf(Ci=Ciseq,Vpmax=ret["Vpmax"],Kp,Rm=ret["Rm"]))
   fittedAvc <- with(data,non_rect_hyp(Ciseq,Amax=ret["Amax"],
                                        alpha=ret["alpha"],theta=0.7,Rd=ret["Rd"]))
   title <- paste0("Ains ",data$ID[1],
                   " Vpmax ",round(ret["Vpmax"],1)," Amax ",round(ret["Amax"],1))
   with(data,plot(Ci,Photo,ylim=c(-10,1.2*max(Photo)),main=title,
-                 xlim=c(-100,1500)))
+                 xlim=c(0,1000)))
   points(Ciseq,fittedAvc,col="red",type="l")
   points(Ciseq,fittedAvp,col="blue",type="l") 
   abline(v=0,lty=2)

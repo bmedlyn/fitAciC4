@@ -42,6 +42,8 @@ vin_smry <- bind_rows(vinout)
 # investigate fitted parameters
 with(vin_smry,plot(Vcmax,Vpmax))
 with(vin_smry,plot(Vpmax,VpmaxLA))
+with(vin_smry,plot(Rd0,RmLA))
+with(vin_smry,plot(RmLA,VpmaxLA))
 with(vin_smry,plot(Vcmax,AmaxLA))
 with(vin_smry,plot(Vcmax,Jmax))
 with(vin_smry,plot(ci_trans,Vpmax))
