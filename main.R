@@ -1,5 +1,12 @@
 # Code fits A-Ci function for C4 photosynthesis
 
+# 1. Just fit Amax to the top of the curve
+# 2. test fitting Amax to the top part of the curve
+# 3. Back-calculate Vcmax and Jmax from the Amax
+# 4. Experiment with fitting Rm:Vpmax ratio
+# 5. Include temperature dependence of Vpmax
+
+
 source("R/loadPackages.R") # required packages
 source("R/AciC4.R")        # implements C4 model
 source("R/functions.R")    # all fitting functions

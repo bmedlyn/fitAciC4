@@ -233,6 +233,7 @@ do_the_lot <- function(data,RdRatio=0.01) {
   pars_a <-fitAciC4_ainsy(data)
   pars$AmaxLA <- pars_a["Amax"]
   pars$VpmaxLA <- pars_a["Vpmax"]
+  pars$RmLA <- pars_a["Rm"]
   return(pars)
   
 }
